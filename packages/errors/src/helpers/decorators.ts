@@ -18,6 +18,12 @@ const errorHandler = (
     throw new InvalidDataType(...invalidDataTypeParams);
 };
 
+/**
+ * Intercepts the error thrown by the decorated method and throws an InvalidDataType error.
+ * @param errorMessage Custom error message to throw.
+ * @returns The intercepted method.
+ */
+
 const ErrorInterceptor =
     (errorMessage: string) =>
     (
