@@ -1,6 +1,6 @@
-import { HexInt } from './HexInt';
+import { ErrorInterceptor, InvalidDataType } from '@vechain/sdk-errors';
 import { Hex } from './Hex';
-import { InvalidDataType } from '@vechain/sdk-errors';
+import { HexInt } from './HexInt';
 
 /**
  * Represents a hexadecimal unsigned integer.
@@ -34,19 +34,11 @@ class HexUInt extends HexInt {
      *
      * @throws {InvalidDataType} If the given expression is not a valid hexadecimal positive integer expression.
      */
+    @ErrorInterceptor('not a valid hexadecimal unsigned integer expression')
     public static of(
         exp: bigint | number | string | Uint8Array | HexInt
     ): HexUInt {
-        try {
-            return new HexUInt(HexInt.of(exp));
-        } catch (e) {
-            throw new InvalidDataType(
-                'HexUInt.of',
-                'not a hexadecimal positive integer expression',
-                { exp },
-                e
-            );
-        }
+        return new HexUInt(HexInt.of(exp));
     }
 }
 

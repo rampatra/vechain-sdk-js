@@ -1,5 +1,5 @@
 import { Hex } from './Hex';
-import { InvalidDataType } from '@vechain/sdk-errors';
+import { InvalidDataType, ErrorInterceptor } from '@vechain/sdk-errors';
 
 /**
  * Represents a hexadecimal signed integer value.
@@ -69,6 +69,7 @@ class HexInt extends Hex {
      *
      * @remark This class makes equal instances created from the same value as number or as bigint.
      */
+    @ErrorInterceptor('not an hexadecimal integer expression')
     public static of(exp: bigint | number | string | Uint8Array | Hex): HexInt {
         try {
             if (exp instanceof Hex) {

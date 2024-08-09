@@ -4,6 +4,7 @@
  * @extends {HexUInt}
  */
 
+import { ErrorInterceptor } from '@vechain/sdk-errors/src/helpers/decorators';
 import { HexUInt } from './HexUInt';
 
 class Address extends HexUInt {
@@ -23,19 +24,11 @@ class Address extends HexUInt {
      *
      * @returns {Address} The converted hexadecimal unsigned integer.
      */
+    @ErrorInterceptor('not a valid address expression')
     public static of(
         exp: bigint | number | string | Uint8Array | HexUInt
     ): Address {
-        try {
-            return new Address(HexUInt.of(exp));
-        } catch (error) {
-            this.errorHandler(
-                error,
-                'Address.of',
-                'not a valid hexadecimal positive integer expression',
-                { exp: `${exp}`, error }
-            );
-        }
+        return new Address(HexUInt.of(exp));
     }
 
     /**
@@ -45,6 +38,7 @@ class Address extends HexUInt {
      *
      * @returns {Address} The converted hexadecimal unsigned integer.
      */
+    @ErrorInterceptor('not a valid address expression')
     public static from(
         exp: bigint | number | string | Uint8Array | HexUInt
     ): Address {

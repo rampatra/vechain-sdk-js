@@ -3,7 +3,7 @@ import * as nh_utils from '@noble/hashes/utils';
 import {
     InvalidCastType,
     InvalidDataType,
-    type ObjectErrorData
+    ErrorInterceptor
 } from '@vechain/sdk-errors';
 import { type VeChainDataModel } from './VeChainDataModel';
 
@@ -265,55 +265,42 @@ class Hex extends String implements VeChainDataModel<Hex> {
      *
      * @throws {InvalidDataType} if the given `exp` can't be represented as a hexadecimal expression.
      */
+    @ErrorInterceptor('not a valid hexadecimal expression')
     public static of(exp: bigint | number | string | Uint8Array): Hex {
-        try {
-            if (exp instanceof Uint8Array) {
-                return new Hex(this.POSITIVE, nc_utils.bytesToHex(exp));
-            } else if (typeof exp === 'bigint') {
-                if (exp < 0n) {
-                    return new Hex(
-                        this.NEGATIVE,
-                        nc_utils.numberToHexUnpadded(-1n * exp)
-                    );
-                }
+        if (exp instanceof Uint8Array) {
+            return new Hex(this.POSITIVE, nc_utils.bytesToHex(exp));
+        } else if (typeof exp === 'bigint') {
+            if (exp < 0n) {
                 return new Hex(
-                    this.POSITIVE,
-                    nc_utils.numberToHexUnpadded(exp)
-                );
-            } else if (typeof exp === 'number') {
-                const dataView = new DataView(new ArrayBuffer(16));
-                dataView.setFloat64(0, exp);
-                return new Hex(
-                    exp < 0 ? this.NEGATIVE : this.POSITIVE,
-                    nc_utils.bytesToHex(new Uint8Array(dataView.buffer))
+                    this.NEGATIVE,
+                    nc_utils.numberToHexUnpadded(-1n * exp)
                 );
             }
-            if (this.isValid(exp)) {
-                if (exp.startsWith('-')) {
-                    return new Hex(
-                        this.NEGATIVE,
-                        this.REGEX_PREFIX.test(exp)
-                            ? exp.slice(3)
-                            : exp.slice(1)
-                    );
-                }
-                return new Hex(
-                    this.POSITIVE,
-                    this.REGEX_PREFIX.test(exp) ? exp.slice(2) : exp
-                );
-            }
-            // noinspection ExceptionCaughtLocallyJS
-            throw new InvalidDataType('Hex.of', 'not an hexadecimal string', {
-                exp
-            });
-        } catch (e) {
-            throw new InvalidDataType(
-                'Hex.of',
-                'not an hexadecimal expression',
-                { exp: `${exp}` }, // Needed to serialize bigint values.
-                e
+            return new Hex(this.POSITIVE, nc_utils.numberToHexUnpadded(exp));
+        } else if (typeof exp === 'number') {
+            const dataView = new DataView(new ArrayBuffer(16));
+            dataView.setFloat64(0, exp);
+            return new Hex(
+                exp < 0 ? this.NEGATIVE : this.POSITIVE,
+                nc_utils.bytesToHex(new Uint8Array(dataView.buffer))
             );
         }
+        if (this.isValid(exp)) {
+            if (exp.startsWith('-')) {
+                return new Hex(
+                    this.NEGATIVE,
+                    this.REGEX_PREFIX.test(exp) ? exp.slice(3) : exp.slice(1)
+                );
+            }
+            return new Hex(
+                this.POSITIVE,
+                this.REGEX_PREFIX.test(exp) ? exp.slice(2) : exp
+            );
+        }
+        // noinspection ExceptionCaughtLocallyJS
+        throw new InvalidDataType('Hex.of', 'not an hexadecimal string', {
+            exp
+        });
     }
 
     /**
@@ -333,27 +320,6 @@ class Hex extends String implements VeChainDataModel<Hex> {
         throw new InvalidDataType('Hex.random', 'bytes argument not > 0', {
             bytes
         });
-    }
-
-    /**
-     * Error handler for Hex and its subclasses so we do not hide them.
-     *
-     * @param error - The error to handle from the subclass.
-     * @param methodName - The name of the method that threw the error.
-     * @param {string} errorMessage - The error message to throw.
-     * @param {ObjectErrorData} data - The data to include in the error.
-     * @throws {InvalidDataType} - Throws an error with the given message and data.
-     */
-    protected static errorHandler(
-        error: unknown,
-        methodName: string,
-        errorMessage: string,
-        data: ObjectErrorData
-    ): never {
-        if (error instanceof InvalidDataType) {
-            throw error;
-        }
-        throw new InvalidDataType(methodName, errorMessage, data);
     }
 }
 
